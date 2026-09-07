@@ -1,7 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { initializeChaseSystem } from './database/init.js'; // New import
+import { initializeChaseSystem } from './database/init.js';
+import profileRoutes from './routes/profileRoutes.js';
+import applicationRoutes from './routes/applicationRoutes.js';
 
 // Load environmental configuration variables
 dotenv.config();
@@ -34,7 +36,7 @@ const authenticateApiKey = (req, res, next) => {
 
 app.use('/api', authenticateApiKey);
 
-// Version 1 health verification endpoint
+// Version 1 health verification endpoint <- placed here just for fun
 app.get('/api/v1/health', (req, res) => {
   res.json({ 
     status: 'online', 
@@ -42,6 +44,10 @@ app.get('/api/v1/health', (req, res) => {
     engine: 'Express on Node.js' 
   });
 });
+
+// Proper routes, with controllers behind
+app.use('/api/v1', profileRoutes);
+app.use('/api/v1', applicationRoutes);
 
 async function startServer() {
   try {

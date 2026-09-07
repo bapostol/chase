@@ -1,0 +1,29 @@
+info:
+  name: Put Profile
+  type: http
+  seq: 2
+
+http:
+  method: PUT
+  url: "{{base-url}}/api/v1/profile"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Bogdan",
+        "email": "email@server.com",
+        "phone": "+971501234567",
+        "location": "Abu Dhabi",
+        "website": "https://bogdan.dev",
+        "github": "",
+        "linkedin": "",
+        "summary_baseline": ""
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

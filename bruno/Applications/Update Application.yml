@@ -1,0 +1,22 @@
+info:
+  name: Update Application
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: "{{base-url}}/api/v1/applications/{{application-id}}"
+  body:
+    type: json
+    data: |-
+      {
+        "status": "Applied"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

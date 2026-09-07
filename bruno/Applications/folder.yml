@@ -1,0 +1,10 @@
+info:
+  name: Applications
+  type: folder
+  seq: 3
+
+request:
+  auth: inherit
+  variables:
+    - name: application-id
+      value: 359936ac-340c-4a38-90e2-bbee43705564
