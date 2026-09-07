@@ -6,6 +6,11 @@ info:
 http:
   method: GET
   url: "{{base-url}}/api/v1/applications"
+  params:
+    - name: archived
+      value: "true"
+      type: query
+      disabled: true
   auth: inherit
 
 settings:

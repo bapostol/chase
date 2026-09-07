@@ -14,7 +14,8 @@ http:
         "company": "Stark Industries",
         "url": "https://linkedin.com",
         "status": "Ready to Apply",
-        "tags": ["Vue3", "Vite", "Tailwind"]
+        "tags": ["Vue3", "Vite", "Tailwind"],
+        "description_text": "Job description here"
       }
   auth: inherit
 
