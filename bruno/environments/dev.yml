@@ -1,0 +1,7 @@
+name: dev
+variables:
+  - name: base-url
+    value: http://localhost:3000
+    description: ""
+  - secret: true
+    name: x-api-key

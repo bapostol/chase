@@ -1,0 +1,26 @@
+info:
+  name: Create Application
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{base-url}}/api/v1/applications"
+  body:
+    type: json
+    data: |-
+      {
+        "title": "Senior Frontend Architect",
+        "company": "Stark Industries",
+        "url": "https://linkedin.com",
+        "status": "Ready to Apply",
+        "tags": ["Vue3", "Vite", "Tailwind"]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
