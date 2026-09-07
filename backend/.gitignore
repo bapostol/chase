@@ -1,0 +1,14 @@
+# Environment local configurations
+.env
+.env.local
+
+# Dependency compilation and runtime structures
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS specific temporary overrides
+.DS_Store
+Thumbs.db
