@@ -8,6 +8,7 @@ const STORAGE_ROOT = path.resolve(__dirname, '../../../data');
 
 export const CHASE_PATHS = {
   dbPath: path.join(STORAGE_ROOT, 'tracker.db'),
+  profileJson: path.join(STORAGE_ROOT, 'profile.json'), 
   documentsDir: path.join(STORAGE_ROOT, 'documents'),
   masterCvsDir: path.join(STORAGE_ROOT, 'documents', 'master_cvs'),
   applicationsDir: path.join(STORAGE_ROOT, 'documents', 'applications'),

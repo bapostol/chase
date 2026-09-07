@@ -1,9 +1,0 @@
--- Up
-CREATE TABLE IF NOT EXISTS chase_migrations (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  migration_name TEXT UNIQUE NOT NULL,
-  applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Down
-DROP TABLE IF EXISTS chase_migrations;
