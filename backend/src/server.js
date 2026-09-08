@@ -2,9 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { initializeChaseSystem } from './database/init.js';
+import { globalRateLimiter } from './middleware/rateLimiter.js'; 
 import profileRoutes from './routes/profileRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
-import { globalRateLimiter } from './middleware/rateLimiter.js'; 
+import skillRoutes from './routes/skillRoutes.js';
 
 // Load environmental configuration variables
 dotenv.config();
@@ -50,6 +51,7 @@ app.get('/api/v1/health', (req, res) => {
 // Proper routes, with controllers behind
 app.use('/api/v1', profileRoutes);
 app.use('/api/v1', applicationRoutes);
+app.use('/api/v1', skillRoutes);
 
 async function startServer() {
   try {
