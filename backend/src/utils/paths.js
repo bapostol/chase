@@ -12,8 +12,12 @@ export const CHASE_PATHS = {
   documentsDir: path.join(STORAGE_ROOT, 'documents'),
   masterCvsDir: path.join(STORAGE_ROOT, 'documents', 'master_cvs'),
   applicationsDir: path.join(STORAGE_ROOT, 'documents', 'applications'),
+  skillsDir: path.join(STORAGE_ROOT, 'skills'),
 
   // Deterministic file-system pathways mapped directly to incoming UUID v4 strings
+  getSkillFilePath: (category, slug) => 
+    path.join(STORAGE_ROOT, 'skills', category, `${slug}.md`),
+
   getMasterCvPath: (masterCvId) => 
     path.join(STORAGE_ROOT, 'documents', 'master_cvs', `${masterCvId}.docx`),
 
@@ -26,3 +30,5 @@ export const CHASE_PATHS = {
   getDraftMarkdownPath: (applicationId, draftId) => 
     path.join(STORAGE_ROOT, 'documents', 'applications', applicationId, `${draftId}.md`)
 };
+
+export const ALLOWED_CATEGORIES = ['system_recruiter', 'cv_tailor', 'gap_analyzer'];
