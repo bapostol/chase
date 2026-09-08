@@ -58,17 +58,27 @@ const validateForm = () => {
         return false;
     }
 
-    const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/i;
     const urlFields = ['website', 'github', 'linkedin'];
 
     for (const field of urlFields) {
         const val = form.value[field].trim();
-        if (val && !urlPattern.test(val)) {
-            validationError.value = `Invalid URL structure format provided for your ${field} address.`;
-            activeTab.value = 'links';
-            return false;
+        if (val) {
+            const lowercaseVal = val.toLowerCase();
+            if (!lowercaseVal.startsWith('http://') && !lowercaseVal.startsWith('https://')) {
+                validationError.value = `Your ${field} link must begin with http:// or https://.`;
+                activeTab.value = 'links';
+                return false;
+            }
+
+            // Basic sanity check to ensure a domain exists after the protocol prefix
+            if (val.replace('http://', '').replace('https://', '').trim().length < 3) {
+                validationError.value = `Please provide a complete URL structure for your ${field} address.`;
+                activeTab.value = 'links';
+                return false;
+            }
         }
     }
+
 
     return true;
 };
@@ -155,7 +165,7 @@ const handleSubmit = () => {
                 <!-- Tab Panel A: Personal Identification Inputs -->
                 <div v-show="activeTab === 'personal'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Full Name</label>
+                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 after:content-['*'] after:ml-0.5 after:text-red-500">Full Name</label>
                         <input v-model="form.name" type="text" placeholder="e.g. John Doe"
                             class="bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none transition shadow-inner" />
                     </div>
