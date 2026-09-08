@@ -1,0 +1,13 @@
+# Ignore everything inside the local data directory
+*
+
+# Except for .git files
+!*.gitkeep
+!*.gitignore
+
+# Except the directory paths for skills
+!skills/
+!skills/*/
+
+# Except the default.md files
+!skills/**/default.md
