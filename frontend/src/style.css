@@ -1,1 +1,72 @@
-@import "tailwindcss"
+@import "tailwindcss";
+
+@theme {
+  /* Typography: Georgia Serif for editorial structure, Inter Sans for data telemetry */
+  --font-serif: "Georgia", "Cambria", "Times New Roman", Times, serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Color Palette Shift: Overwriting Tailwind variables with your custom Color Hunt choices */
+  
+  /* Background Base Layer (Derived deep earth tones from your Umber palette selection) */
+  --color-slate-950: #19150e; /* Shadow valleys and deep modal background backdrops */
+  --color-slate-900: #262015; /* Master Dashboard Background Base */
+  
+  /* Containers & Borders (Utilizes your choice #827148 Raw Umber scale) */
+  --color-slate-800: #463b25; /* Kanban Column Tracks & Card Containers */
+  --color-slate-700: #5d4f32; /* Weathered Borders and Divide Lines */
+  --color-slate-600: #827148; /* Your exact Choice #827148 - Muted Text / Utility Lines */
+  
+  /* Accent Secondary Tags (Utilizes your choice #A5AF79 Muted Sage Green scale) */
+  --color-slate-500: #717d43; /* Rich Moss Accent Details */
+  --color-slate-400: #a5af79; /* Your exact Choice #A5AF79 - Secondary Descriptions & Badges */
+  
+  /* Typography Text Scales (Utilizes your choice #FFEED6 Soft Cream Parchment scale) */
+  --color-slate-300: #d6cab8; /* General Secondary Metadata Text */
+  --color-slate-200: #ffeed6; /* Your exact Choice #FFEED6 - Primary Headers & Factual Wording */
+  --color-slate-100: #fff9f0; /* Crisp Linen High-Contrast Active Highlights */
+
+  /* Branding Interaction Triggers (Utilizes your choice #E8A07C Warm Clay scale) */
+  --color-indigo-600: #e8a07c; /* Your exact Choice #E8A07C - Buttons & Main Ingestion Triggers */
+  --color-indigo-500: #f0b294; /* Soft Coral Hover changes */
+  --color-indigo-400: #f5c4ad; /* Active links & focused tab highlighting tags */
+  
+  /* Status Telemetry (Grounded Olive Green overrides for connected status checks) */
+  --color-emerald-400: #a5af79; 
+  --color-emerald-500: #717d43;
+}
+
+/* Global Base Application Resets */
+body {
+  font-family: var(--font-serif);
+  background-color: var(--color-slate-900);
+  color: var(--color-slate-200); /* Linen parchment serves as default text layer */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Target the master root scrollbar container dimensions */
+::-webkit-scrollbar {
+  width: 8px;  /* Vertical scrollbar width bounds */
+  height: 8px; /* Horizontal scrollbar height bounds (The Kanban track) */
+}
+
+/* Style the background scrollbar track valley path */
+::-webkit-scrollbar-track {
+  background: transparent; /* Makes the tracking tray invisible to show your dark background */
+}
+
+/* Style the interactive scrolling thumb bar handle */
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-slate-400); /* Uses your exact Color Hunt Muted Sage Green */
+  border-radius: 9999px;                     /* Completely pills the edges for a smooth feel */
+  border: 2px solid transparent;             /* Acts as an organic padding gap buffer */
+}
+
+/* Provide visual feedback when a user hovers over the track controls */
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-slate-500); /* Softly deepens the green slightly on active touch */
+}
+
+/* Optional: Smooth out element container clipping profiles */
+.overflow-x-auto, .overflow-y-auto {
+  scrollbar-gutter: stable; /* Stops text layout jumps when scrollbars materialize */
+}
