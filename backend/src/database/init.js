@@ -1,11 +1,29 @@
 import fs from 'fs/promises';
+import path from 'path';
 import { getDatabase } from './connection.js';
-import { CHASE_PATHS } from '../utils/paths.js';
+import { CHASE_PATHS, ALLOWED_CATEGORIES } from '../utils/paths.js';
 import { ProfileSchema } from '../models/profileModel.js';
 
 export async function initializeChaseSystem() {
+  // 1. Ensure core document and asset hierarchies exist
   await fs.mkdir(CHASE_PATHS.masterCvsDir, { recursive: true });
   await fs.mkdir(CHASE_PATHS.applicationsDir, { recursive: true });
+
+  // 2. Ensure fixed skill directories folders exist
+  for (const cat of ALLOWED_CATEGORIES) {
+    const targetFolder = path.join(CHASE_PATHS.skillsDir, cat);
+    await fs.mkdir(targetFolder, { recursive: true });
+
+    // Seed an initial baseline text placeholder if default.md doesn't exist
+    const defaultFileTarget = path.join(targetFolder, 'default.md');
+    try {
+      await fs.access(defaultFileTarget);
+    } catch {
+      const templateNotice = `# Baseline Prompt Context: ${cat.replace('_', ' ').toUpperCase()}\n\n[Add your specialized prompt templates and local 70B system instructions here]`;
+      await fs.writeFile(defaultFileTarget, templateNotice, 'utf8');
+      console.log(`Seeded missing default template anchor at: data/skills/${cat}/default.md`);
+    }
+  }
 
   const db = getDatabase();
 

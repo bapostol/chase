@@ -1,5 +1,10 @@
-# Ignore the entire local single-user persistent workspace partition
-# This blocks your tracker.db and all uploaded or generated CV documents from Git
-/data/*
-# Except for gitkeep
-!/data/*.gitkeep
+# Secrets
+.env*
+!.env.dist
+
+# Dependencies
+node_modules
+
+# OS files
+.DS_Store
+Thumbs.db
