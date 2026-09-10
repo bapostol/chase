@@ -1,0 +1,12 @@
+info:
+  name: Skills
+  type: folder
+  seq: 4
+
+request:
+  auth: inherit
+  variables:
+    - name: skill-name
+      value: cv_tailor
+    - name: file-name
+      value: new-skill

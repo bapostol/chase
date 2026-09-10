@@ -1,0 +1,22 @@
+info:
+  name: Upsert Skill
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{base-url}}/api/v1/skill/{{skill-name}}/{{file-name}}"
+  body:
+    type: json
+    data: |-
+      {
+        "content": "# Baseline Prompt Context: NEW SKILL\n\n[Add your specialized prompt templates and local 70B system instructions here]"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
