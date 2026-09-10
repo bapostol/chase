@@ -1,34 +1,49 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { User, Link, FileText, Save, X, AlertCircle } from 'lucide-vue-next';
 
-// 1. Structural Component Contracts
 const props = defineProps({
-    isClosable: {
-        type: Boolean,
-        default: true
-    }
+  isClosable: {
+    type: Boolean,
+    default: true
+  },
+  profileData: {
+    type: Object,
+    default: null
+  }
 });
 
 const emit = defineEmits(['close', 'save']);
 
-// 2. Active Tab State Coordinator: 'personal' | 'links' | 'summary'
 const activeTab = ref('personal');
 
-// 3. Bound Form States (Mirrors your backend Zod verification fields exactly)
 const form = ref({
-    name: '',
-    email: '',
-    phone: '',
-    location: '',
-    website: '',
-    github: '',
-    linkedin: '',
-    summary_baseline: ''
+  name: '',
+  email: '',
+  phone: '',
+  location: '',
+  website: '',
+  github: '',
+  linkedin: '',
+  summary_baseline: ''
 });
 
-// Local validation warning strings error array bucket
 const validationError = ref('');
+
+watch(() => props.profileData, (newData) => {
+  if (newData) {
+    form.value = {
+      name: newData.name || '',
+      email: newData.email || '',
+      phone: newData.phone || '',
+      location: newData.location || '',
+      website: newData.website || '',
+      github: newData.github || '',
+      linkedin: newData.linkedin || '',
+      summary_baseline: newData.summary_baseline || ''
+    };
+  }
+}, { immediate: true });
 
 // Helper events to bypass inline dollar signs in markdown
 const handleCloseClick = () => {
@@ -41,7 +56,7 @@ const handleBackdropClick = () => {
     }
 };
 
-// 4. Client Side Schema Evaluation Gate Guard
+// Client Side Schema Evaluation Gate Guard
 const validateForm = () => {
     validationError.value = '';
 

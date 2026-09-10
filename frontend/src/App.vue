@@ -1,55 +1,67 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import DashboardView from './views/DashboardView.vue';
 import ArchiveView from './views/ArchiveView.vue';
 import AppHeader from './components/ui/AppHeader.vue';
 import ProfileModal from './components/ui/ProfileModal.vue';
+import PromptModal from './components/skills/PromptModal.vue';
 
-// View states tracking: 'dashboard' | 'archive'
+// Ingest clean, live state hooks
+import { useProfile } from './composables/useProfile.js';
+
 const currentView = ref('dashboard');
-
-// Modal visibility flags
 const isProfileModalOpen = ref(false);
+const isPromptsModalOpen = ref(false);
 
-// Mock profile tracking flags. These will connect directly to your express API states later
-const isProfileComplete = ref(false); // Emulates a brand new user out of the box
+const { profile, fetchProfile, saveProfile } = useProfile();
 
-// On system boot, if profile.json is blank, force-open the modal gate defensively
-if (!isProfileComplete.value) {
-  isProfileModalOpen.value = true;
-}
+// Trigger an automatic network call on browser load to discover workspace files states
+onMounted(() => {
+  fetchProfile();
+});
 
-const handleProfileSave = (updatedProfile) => {
-  isProfileComplete.value = true;
-  isProfileModalOpen.value = false;
-  console.log('User profile securely synchronized to disk:', updatedProfile);
+const handleProfileSave = async (payload) => {
+  const success = await saveProfile(payload);
+  if (success) {
+    isProfileModalOpen.value = false; 
+    console.log('User profile setup verified and locked in.');
+  }
 };
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
+  <div v-if="profile" class="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
     
-    <!-- Primary Shell Navigation Layout header -->
     <AppHeader 
       :active-view="currentView"
       @navigate="(view) => currentView = view"
       @open-profile="isProfileModalOpen = true"
+      @open-prompts="isPromptsModalOpen = true"
     />
 
-    <!-- Core Pipeline Workspace Swapping Area -->
     <main class="flex-1 flex flex-col overflow-hidden">
       <DashboardView v-if="currentView === 'dashboard'" />
       <ArchiveView v-else-if="currentView === 'archive'" />
     </main>
 
-    <!-- Unified Profile Modal Component Layer -->
-    <!-- Enforces non-dismissible backdrop constraints if profile configuration is empty -->
+    <!-- Modal locks viewport context if profile data reads incomplete -->
     <ProfileModal 
-      v-if="isProfileModalOpen"
-      :is-closable="isProfileComplete"
+      v-if="isProfileModalOpen || !profile.is_profile_complete"
+      :is-closable="profile.is_profile_complete"
+      :profile-data="profile"
       @close="isProfileModalOpen = false"
       @save="handleProfileSave"
     />
 
+    <PromptModal 
+      :is-open="isPromptsModalOpen"
+      @close="isPromptsModalOpen = false"
+    />
+
+  </div>
+  
+  <!-- Fast Loading Placeholder screen while Axios hits the Express proxy layers -->
+  <div v-else class="min-h-screen bg-slate-900 flex items-center justify-center text-slate-500 font-mono text-xs select-none">
+    Initializing CHASE Core Subsystems...
   </div>
 </template>
