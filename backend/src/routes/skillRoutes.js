@@ -21,6 +21,7 @@ const validateFileSlug = (req, res, next) => {
 };
 
 // Route structures use standard clean parameters, protected by the structural middleware guard pass
+router.get('/skills/inventory', skillController.listAll);
 router.get('/skill/:skill_name/:file_name', validateFileSlug, skillController.get);
 router.post('/skill/:skill_name/:file_name', heavyWriteRateLimiter, validateFileSlug, skillController.upsert);
 

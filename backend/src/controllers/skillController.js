@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import path from 'path';
 import { CHASE_PATHS, ALLOWED_CATEGORIES } from '../utils/paths.js';
 
 export const skillController = {
@@ -58,6 +59,35 @@ export const skillController = {
     } catch (error) {
       console.error('Failed to write markdown prompt asset to storage layer:', error);
       return res.status(500).json({ error: 'Failed to save prompt asset configuration changes.' });
+    }
+  },
+  // Scan folders dynamically and return a dictionary of clean file slugs
+  async listAll(req, res) {
+    try {
+      const resultDictionary = {};
+
+      for (const category of ALLOWED_CATEGORIES) {
+        const folderPath = path.join(CHASE_PATHS.skillsDir, category);
+        
+        try {
+          const files = await fs.readdir(folderPath);
+          
+          // Filter for markdown files and strip out their extensions
+          const cleanSlugs = files
+            .filter(file => file.endsWith('.md'))
+            .map(file => file.replace('.md', ''));
+            
+          resultDictionary[category] = cleanSlugs;
+        } catch {
+          // If a directory hasn't initialized yet, default to an empty array fallback
+          resultDictionary[category] = ['default'];
+        }
+      }
+
+      res.json(resultDictionary);
+    } catch (error) {
+      console.error('Failed to parse prompt directory matrices:', error);
+      res.status(500).json({ error: 'Failed to discover local file variations.' });
     }
   }
 };
