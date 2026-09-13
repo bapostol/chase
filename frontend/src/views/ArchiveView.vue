@@ -1,19 +1,31 @@
 <script setup>
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Calendar, Link2, RotateCcw, Trash2, ShieldAlert } from 'lucide-vue-next';
+import ApplicationModal from '../components/ui/ApplicationModal.vue';
 import { useApplications } from '../composables/useApplications.js';
 
-// Ingest our live centralized database connection tools
-const { applications, isLoading, error, fetchApplications, patchApplication, purgeApplication } = useApplications();
+// Ingest your live state hooks including the new single-fetch method
+const { applications, isLoading, error, fetchApplications, patchApplication, purgeApplication, fetchSingleApplication } = useApplications();
 
-// Trigger a live database evaluation sweep targeting ONLY soft-deleted rows when view mounts
+// Modal visibility control states
+const isAppModalOpen = ref(false);
+const selectedApplication = ref(null);
+
 onMounted(async () => {
-  await fetchApplications(true); // Passes true to filter exclusively for is_archived === 1
+  await fetchApplications(true);
 });
 
+// ARCHITECTURAL FIX: Asynchronously request full metadata and disk file contents upon clicking a row
+const handleRowClick = async (appRow) => {
+  const deepApplicationData = await fetchSingleApplication(appRow.id);
+  
+  if (deepApplicationData) {
+    selectedApplication.value = deepApplicationData;
+    isAppModalOpen.value = true;
+  }
+};
+
 const handleRestore = async (id) => {
-  // Flips the soft-delete flag back to false. 
-  // Our optimistic UI composable will instantly drop it from this view list
   await patchApplication(id, { is_archived: false });
 };
 
@@ -23,130 +35,88 @@ const handlePermanentDelete = async (id) => {
     await purgeApplication(id);
   }
 };
+
+const handleArchiveFormSave = async (payload) => {
+  // If a user edits fields or un-archives directly via the administrative force override panel
+  await patchApplication(payload.id, payload);
+  isAppModalOpen.value = false;
+  selectedApplication.value = null;
+  await fetchApplications(true); // Re-hydrate cold storage rows cleanly
+};
 </script>
 
 <template>
-  <div class="flex-1 flex flex-col overflow-hidden bg-slate-900">
+  <div class="flex-1 flex flex-col overflow-hidden bg-canvas-bg">
     
-    <!-- Local Options Sub-Bar Controls Section -->
-    <div class="px-6 py-3 bg-slate-800/40 border-b border-slate-800 flex items-center justify-between shrink-0 h-12">
-      <div class="flex items-center gap-2 select-none">
-        <h2 class="text-sm font-bold text-slate-200 tracking-tight">Archived Cold Storage</h2>
-        
-        <span 
-          v-if="isLoading" 
-          class="text-[10px] text-indigo-400 font-mono animate-pulse"
-        >
-          Querying SQLite Archive...
-        </span>
-        <span 
-          v-else
-          class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700/60 px-2 py-0.5 rounded font-mono"
-        >
-          Historical Records: {{ applications.length }}
-        </span>
+    <!-- SUB-HEADER BAR: h-12 -->
+    <div class="h-12 px-6 bg-header-button border-b border-header-ink/20 flex items-center justify-between shrink-0 select-none text-header-ink">
+      <div class="flex items-center gap-2">
+        <h2 class="text-xs font-bold font-sans uppercase tracking-wider">Archived Cold Storage</h2>
+        <span v-if="isLoading" class="text-[10px] font-mono animate-pulse opacity-80">Querying Archive...</span>
+        <span v-else class="text-[10px] bg-header-toggle border border-border-line/20 px-2 py-0.5 rounded font-mono font-bold">Records: {{ applications.length }}</span>
       </div>
     </div>
 
     <!-- Error HUD Alert Message Box Overlay -->
-    <div 
-      v-if="error" 
-      class="m-6 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl font-medium"
-    >
-      {{ error }}
-    </div>
+    <div v-if="error" class="m-6 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-800 text-xs rounded-xl font-medium font-sans">{{ error }}</div>
 
-    <!-- Scrollable Archive Workspace Layout List -->
-    <div v-else class="flex-1 overflow-y-auto p-6">
+    <!-- Archive List Register Track -->
+    <div v-else class="flex-1 overflow-y-auto p-6 bg-panel-bg h-[calc(100vh-112px)] min-h-[calc(100vh-112px)]">
       <div class="max-w-4xl mx-auto space-y-4">
         
-        <!-- Render Live Archived Rows from Database -->
+        <!-- Render Archived List Cards -->
         <div 
           v-for="app in applications" 
           :key="app.id"
-          class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-5 shadow-sm hover:border-slate-600/60 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+          class="bg-canvas-bg border border-border-line/20 rounded-xl p-5 shadow-sm hover:border-brand-primary/40 hover:shadow-md transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group cursor-pointer"
+          @click="handleRowClick(app)"
         >
-          
-          <div class="space-y-2 max-w-xl">
+          <!-- Left Details Stack -->
+          <div class="space-y-2 max-w-xl flex-1">
             <div class="flex flex-wrap items-center gap-2">
-              <h3 class="font-bold text-base text-white group-hover:text-indigo-400 transition leading-none">
+              <h3 class="font-bold text-base text-ink-primary group-hover:text-brand-primary transition-colors duration-150 leading-none">
                 {{ app.title }}
               </h3>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-900 text-slate-400 border border-slate-700/40">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-panel-bg border border-border-line/30 text-ink-secondary font-sans shadow-sm">
                 {{ app.status }}
               </span>
             </div>
             
-            <p class="text-xs text-slate-400 font-medium leading-none">{{ app.company }}</p>
+            <p class="text-xs text-ink-secondary font-medium font-sans leading-none">{{ app.company }}</p>
             
-            <!-- Context Telemetry Badges (Date and URL Links) -->
-            <div class="flex flex-wrap items-center gap-4 text-slate-500 text-[11px] pt-1">
-              <span class="flex items-center gap-1">
-                <Calendar class="w-3.5 h-3.5" />
-                Created: {{ new Date(app.created_at).toLocaleDateString() }}
-              </span>
-              <a 
-                v-if="app.url" 
-                :href="app.url" 
-                target="_blank"
-                class="flex items-center gap-1 text-slate-400 hover:text-indigo-400 transition"
-              >
-                <Link2 class="w-3.5 h-3.5" />
-                View Posting
-              </a>
+            <div class="flex flex-wrap items-center gap-4 text-ink-muted text-[11px] pt-1">
+              <span class="flex items-center gap-1 font-sans"><Calendar class="w-3.5 h-3.5" />Created: {{ new Date(app.created_at).toLocaleDateString() }}</span>
+              <a v-if="app.url" :href="app.url" target="_blank" @click.stop class="flex items-center gap-1 text-ink-secondary hover:text-brand-primary transition font-sans"><Link2 class="w-3.5 h-3.5" />View Posting</a>
             </div>
 
-            <!-- Ingested Tags Render Box -->
             <div v-if="app.tags && app.tags.length" class="flex flex-wrap gap-1.5 pt-1">
-              <span 
-                v-for="tag in app.tags" 
-                :key="tag"
-                class="bg-slate-900 border border-slate-700/40 text-slate-400 text-[10px] font-semibold px-2 py-0.5 rounded"
-              >
-                {{ tag }}
-              </span>
+              <span v-for="tag in app.tags" :key="tag" class="bg-panel-bg border border-border-line/30 text-ink-primary text-[10px] font-bold font-sans px-2 py-0.5 rounded shadow-sm">{{ tag }}</span>
             </div>
           </div>
 
-          <!-- Right Content Cluster: Action Controls -->
-          <div class="flex items-center gap-2 sm:self-center shrink-0">
-            
-            <!-- Restore Button: Sends patch request to flip is_archived back to false -->
-            <button 
-              @click="handleRestore(app.id)"
-              class="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 px-3 py-2 rounded-xl text-xs font-semibold tracking-wide transition shadow-sm cursor-pointer"
-              title="Restore to Active Kanban Pipeline"
-            >
-              <RotateCcw class="w-3.5 h-3.5" />
-              Restore
-            </button>
-
-            <!-- Permanent Hard Deletion Trigger: Wipes database and recursive folders off disk -->
-            <button 
-              @click="handlePermanentDelete(app.id)"
-              class="flex items-center gap-1.5 bg-slate-900/40 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-900/40 text-slate-500 hover:text-rose-400 px-3 py-2 rounded-xl text-xs font-semibold tracking-wide transition cursor-pointer"
-              title="Permanently Purge Data and Files"
-            >
-              <Trash2 class="w-3.5 h-3.5" />
-              Purge
-            </button>
-
+          <!-- Right Action Controls (stop modifier blocks propagation to prevent launching the modal dialog on button click) -->
+          <div class="flex items-center gap-2 sm:self-center shrink-0" @click.stop>
+            <button @click="handleRestore(app.id)" class="flex items-center gap-1.5 bg-header-button hover:opacity-90 border border-border-line/20 text-header-ink px-3 py-2 rounded-xl text-xs font-bold font-sans tracking-wide transition shadow-sm cursor-pointer"><RotateCcw class="w-3.5 h-3.5" />Restore</button>
+            <button @click="handlePermanentDelete(app.id)" class="flex items-center gap-1.5 bg-panel-bg/60 hover:bg-rose-500/10 border border-border-line/20 text-ink-secondary hover:text-rose-700 px-3 py-2 rounded-xl text-xs font-bold font-sans tracking-wide transition cursor-pointer"><Trash2 class="w-3.5 h-3.5" />Purge</button>
           </div>
         </div>
 
-        <!-- Empty Storage Layout Visual Feedback Placeholder State -->
-        <div 
-          v-if="!isLoading && applications.length === 0"
-          class="border border-dashed border-slate-800 rounded-2xl p-12 text-center max-w-md mx-auto flex flex-col items-center justify-center space-y-3 select-none"
-        >
-          <ShieldAlert class="w-8 h-8 text-slate-700" />
-          <h4 class="font-bold text-slate-400 text-sm">Cold storage is empty</h4>
-          <p class="text-xs text-slate-500 leading-relaxed">
-            Soft-deleted applications will materialize inside this register, protecting your historical data models from irreversible data loss.
-          </p>
+        <div v-if="!isLoading && applications.length === 0" class="border border-dashed border-border-line/40 bg-canvas-bg/20 rounded-2xl p-12 text-center max-w-md mx-auto flex flex-col items-center justify-center space-y-3 select-none">
+          <ShieldAlert class="w-8 h-8 text-ink-secondary/60" />
+          <h4 class="font-bold text-ink-primary text-sm">Cold storage is empty</h4>
+          <p class="text-xs text-ink-secondary font-bold font-sans leading-relaxed tracking-wide">Soft-deleted records will materialize inside this registry view track safely.</p>
         </div>
 
       </div>
     </div>
+
+    <!-- Mount Connected Multi-Mode Modal Context Form Overlay -->
+    <ApplicationModal 
+      :is-open="isAppModalOpen"
+      :application-data="selectedApplication"
+      @close="isAppModalOpen = false"
+      @save="handleArchiveFormSave"
+    />
+
   </div>
 </template>

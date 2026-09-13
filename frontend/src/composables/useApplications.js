@@ -77,10 +77,27 @@ export function useApplications() {
     }
   };
 
+  // Query a single application row along with its physical disk description file text stream
+  const fetchSingleApplication = async (id) => {
+    isLoading.value = true;
+    error.value = null;
+    try {
+      const response = await axios.get(`/api/v1/applications/${id}`);
+      return response.data;
+    } catch (err) {
+      console.error('Failed to perform deep application handshake pass:', err);
+      error.value = err.response?.data?.error || 'Failed to sync application file assets.';
+      return null;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   return {
     applications,
     isLoading,
     error,
+    fetchSingleApplication,
     fetchApplications,
     createApplication,
     patchApplication,

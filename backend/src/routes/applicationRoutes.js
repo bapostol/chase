@@ -6,6 +6,7 @@ const router = Router();
 
 router.post('/applications', heavyWriteRateLimiter, applicationController.create);
 router.get('/applications', applicationController.getAll);
+router.get('/applications/:id', applicationController.get);
 router.patch('/applications/:id', heavyWriteRateLimiter, applicationController.update);
 router.delete('/applications/:id', heavyWriteRateLimiter, applicationController.delete);
 

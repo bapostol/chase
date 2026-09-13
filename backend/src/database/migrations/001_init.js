@@ -7,7 +7,7 @@ export const up = async (knex) => {
     table.string('url');
     table.string('status').defaultTo('Ready to Apply');
     table.timestamp('created_at').defaultTo(knex.fn.now());
-    
+
     table.index('status', 'idx_applications_status');
   });
 

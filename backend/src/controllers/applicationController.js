@@ -148,79 +148,143 @@ export const applicationController = {
         }
     },
 
+    // Fetch specific job
+    async get(req, res) {
+        const { id } = req.params;
+        const db = getDatabase();
+
+        try {
+            // 1. Query the primary application tracking metadata row from SQLite
+            const application = await db('applications').where({ id }).first();
+            if (!application) {
+                return res.status(404).json({ error: 'Application tracking record not found.' });
+            }
+
+            // 2. Parse relational tags from junction mapping tables
+            const tagsRows = await db('application_tags')
+                .join('tags', 'application_tags.tag_id', 'tags.id')
+                .where('application_tags.application_id', id)
+                .select('tags.name');
+
+            application.tags = tagsRows.map(row => row.name);
+
+            // 3. READ THE TEXT FROM DISK: Fetch the isolated job description file text stream
+            const jobDescFilePath = CHASE_PATHS.getJobDescriptionPath(id);
+            try {
+                application.description_text = await fs.readFile(jobDescFilePath, 'utf8');
+            } catch (fileError) {
+                console.warn(`Warning: Missing or unreadable job_desc.txt at path: ${jobDescFilePath}. Defaulting to blank.`);
+                application.description_text = ''; // Resilient fallback if file was manually erased
+            }
+
+            return res.json(application);
+        } catch (error) {
+            console.error('Failed to retrieve full application telemetry context:', error);
+            return res.status(500).json({ error: 'Internal server error reading application tracking files.' });
+        }
+    },
+
+
     // Update specified fields dynamically (Handles Kanban drag-drops and inline edits)
     async update(req, res) {
         const { id } = req.params;
+        const { title, company, url, status, is_archived, tags, description_text } = req.body;
+
+        const db = getDatabase();
 
         try {
-            const partialInput = ApplicationPatchSchema.parse(req.body);
-            const db = getDatabase();
-
-            const currentApp = await db('applications').where({ id }).first();
-            if (!currentApp) {
-                return res.status(404).json({ error: 'Application entry not found.' });
+            // 1. Verify that the primary application tracking record exists
+            const existingApp = await db('applications').where({ id }).first();
+            if (!existingApp) {
+                return res.status(404).json({ error: 'Application tracking record not found.' });
             }
 
-            // Separate explicit tags key from core columns
-            const { tags, ...coreFieldsToUpdate } = partialInput;
+            // 2. Synchronize raw description text changes directly to disk storage files
+            if (description_text !== undefined && typeof description_text === 'string') {
+                const applicationFolder = CHASE_PATHS.getApplicationFolder(id);
+                const jobDescFilePath = CHASE_PATHS.getJobDescriptionPath(id);
 
-            await db.transaction(async (trx) => {
-                if (Object.keys(coreFieldsToUpdate).length > 0) {
-                    await trx('applications').where({ id }).update(coreFieldsToUpdate);
-                }
+                await fs.mkdir(applicationFolder, { recursive: true });
+                await fs.writeFile(jobDescFilePath, description_text.trim(), 'utf8');
+            }
 
-                // Only modify application_tags if 'tags' was explicitly provided in the raw request body
-                if ('tags' in req.body && Array.isArray(tags)) {
+            // 3. MANY-TO-MANY NORMALIZED TAG SYNCHRONIZATION
+            if (tags !== undefined && Array.isArray(tags)) {
+                await db.transaction(async (trx) => {
+                    const resolvedTagIds = [];
+
+                    // Process each tag string safely one by one
+                    for (const rawTag of tags) {
+                        const cleanName = rawTag.trim().toLowerCase();
+                        if (!cleanName) continue;
+
+                        // Check if the global tag row already exists inside the unified index
+                        let tagRecord = await trx('tags').where({ name: cleanName }).first();
+
+                        // If it's a completely new tag keyword, create its unified row entry
+                        if (!tagRecord) {
+                            const newTagId = crypto.randomUUID();
+                            await trx('tags').insert({
+                                id: newTagId,
+                                name: cleanName
+                            });
+                            resolvedTagIds.push(newTagId);
+                        } else {
+                            resolvedTagIds.push(tagRecord.id);
+                        }
+                    }
+
+                    // Clear historical map entries out of your junction table for this application ID
                     await trx('application_tags').where({ application_id: id }).del();
 
-                    for (let tagName of tags) {
-                        const sanitizedTag = tagName.trim().toLowerCase();
-                        if (!sanitizedTag) continue;
-
-                        let tagRow = await trx('tags').where({ name: sanitizedTag }).first();
-                        let tagId;
-
-                        if (!tagRow) {
-                            tagId = uuidv4();
-                            await trx('tags').insert({ id: tagId, name: sanitizedTag });
-                        } else {
-                            tagId = tagRow.id;
-                        }
-
-                        await trx('application_tags').insert({
+                    // Link your resolved mapping IDs back into your junction ledger table
+                    if (resolvedTagIds.length > 0) {
+                        const junctionInsertRows = resolvedTagIds.map(resolvedId => ({
                             application_id: id,
-                            tag_id: tagId
-                        });
+                            tag_id: resolvedId
+                        }));
+                        await trx('application_tags').insert(junctionInsertRows);
                     }
-                }
-            });
-
-            // Fetch and return the fully aggregated updated record to confirm tag state
-            const row = await db('applications as a')
-                .select(
-                    'a.id', 'a.title', 'a.company', 'a.url', 'a.status', 'a.is_archived', 'a.created_at',
-                    db.raw(`(SELECT COALESCE(json_group_array(t.name), '[]') FROM application_tags at JOIN tags t ON at.tag_id = t.id WHERE at.application_id = a.id) as tags_json`)
-                )
-                .where('a.id', id)
-                .first();
-
-            row.is_archived = row.is_archived == 1
-
-            const formattedRow = {
-                ...row,
-                tags: JSON.parse(row.tags_json).filter(t => t !== null)
-            };
-
-            const verifiedResponse = ApplicationResponseSchema.parse(formattedRow);
-            res.json({ message: 'Update completed successfully.', application: verifiedResponse });
-
-        } catch (error) {
-            if (error instanceof ZodError) {
-                return res.status(400).json({ error: 'Validation failed.', details: error.errors });
+                });
             }
 
-            console.error('Failed to patch application entry:', error);
-            res.status(500).json({ error: 'Failed to update application entity fields.' });
+            // 4. Compile flat database update payload dictionary
+            const dbUpdateData = {};
+            if (title !== undefined) dbUpdateData.title = title.trim();
+            if (company !== undefined) dbUpdateData.company = company.trim();
+            if (url !== undefined) dbUpdateData.url = url ? url.trim() : null;
+            if (status !== undefined) dbUpdateData.status = status;
+            if (is_archived !== undefined) dbUpdateData.is_archived = is_archived ? 1 : 0;
+
+            // 5. Update flat row parameters cleanly (No updated_at column dependency)
+            if (Object.keys(dbUpdateData).length > 0) {
+                await db('applications').where({ id }).update(dbUpdateData);
+            }
+
+            // 6. Query and re-assemble the final application object package to return to the client
+            const updatedApp = await db('applications').where({ id }).first();
+
+            // Perform a join query across your junction table to pull out the string text array
+            const liveTagsRows = await db('application_tags')
+                .join('tags', 'application_tags.tag_id', 'tags.id')
+                .where('application_tags.application_id', id)
+                .select('tags.name');
+
+            updatedApp.tags = liveTagsRows.map(row => row.name);
+
+            // Re-read description file off disk storage to keep state fully verified
+            updatedApp.description_text = description_text !== undefined
+                ? description_text
+                : await fs.readFile(CHASE_PATHS.getJobDescriptionPath(id), 'utf8').catch(() => '');
+
+            return res.json({
+                message: 'Application matrix and disk tracking files successfully synchronized.',
+                application: updatedApp
+            });
+
+        } catch (error) {
+            console.error('Failed to patch application tracking node parameters:', error);
+            return res.status(500).json({ error: 'Internal failure updating application metadata assets.' });
         }
     },
 
