@@ -8,15 +8,18 @@ import PromptModal from './components/skills/PromptModal.vue';
 
 // Ingest clean, live state hooks
 import { useProfile } from './composables/useProfile.js';
+import { useTheme } from './composables/useTheme.js';
 
 const currentView = ref('dashboard');
 const isProfileModalOpen = ref(false);
 const isPromptsModalOpen = ref(false);
 
 const { profile, fetchProfile, saveProfile } = useProfile();
+const { initializeTheme } = useTheme();
 
 // Trigger an automatic network call on browser load to discover workspace files states
 onMounted(() => {
+  initializeTheme();
   fetchProfile();
 });
 

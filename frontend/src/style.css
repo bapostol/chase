@@ -1,72 +1,162 @@
 @import "tailwindcss";
 
 @theme {
-  /* Typography: Georgia Serif for editorial structure, Inter Sans for data telemetry */
+  /* ==========================================================================
+     1. GLOBAL TYPOGRAPHY BOUNDARIES
+     ========================================================================== */
   --font-serif: "Georgia", "Cambria", "Times New Roman", Times, serif;
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 
-  /* Color Palette Shift: Overwriting Tailwind variables with your custom Color Hunt choices */
+  /* ==========================================================================
+     2. TAILWIND V4 SEMANTIC UTILITY MAPPINGS
+     ========================================================================== */
+  /* Workspace Area Tokens */
+  --color-canvas-bg: var(--canvas-bg);
+  --color-panel-bg: var(--panel-bg);
+  --color-border-line: var(--border-line);
   
-  /* Background Base Layer (Derived deep earth tones from your Umber palette selection) */
-  --color-slate-950: #19150e; /* Shadow valleys and deep modal background backdrops */
-  --color-slate-900: #262015; /* Master Dashboard Background Base */
-  
-  /* Containers & Borders (Utilizes your choice #827148 Raw Umber scale) */
-  --color-slate-800: #463b25; /* Kanban Column Tracks & Card Containers */
-  --color-slate-700: #5d4f32; /* Weathered Borders and Divide Lines */
-  --color-slate-600: #827148; /* Your exact Choice #827148 - Muted Text / Utility Lines */
-  
-  /* Accent Secondary Tags (Utilizes your choice #A5AF79 Muted Sage Green scale) */
-  --color-slate-500: #717d43; /* Rich Moss Accent Details */
-  --color-slate-400: #a5af79; /* Your exact Choice #A5AF79 - Secondary Descriptions & Badges */
-  
-  /* Typography Text Scales (Utilizes your choice #FFEED6 Soft Cream Parchment scale) */
-  --color-slate-300: #d6cab8; /* General Secondary Metadata Text */
-  --color-slate-200: #ffeed6; /* Your exact Choice #FFEED6 - Primary Headers & Factual Wording */
-  --color-slate-100: #fff9f0; /* Crisp Linen High-Contrast Active Highlights */
+  /* Typography Text & Icon Tokens */
+  --color-ink-primary: var(--ink-primary);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
 
-  /* Branding Interaction Triggers (Utilizes your choice #E8A07C Warm Clay scale) */
-  --color-indigo-600: #e8a07c; /* Your exact Choice #E8A07C - Buttons & Main Ingestion Triggers */
-  --color-indigo-500: #f0b294; /* Soft Coral Hover changes */
-  --color-indigo-400: #f5c4ad; /* Active links & focused tab highlighting tags */
+  /* Navigation Header Area Tokens */
+  --color-header-bg: var(--header-bg);
+  --color-header-toggle: var(--header-toggle);
+  --color-header-button: var(--header-button);
+  --color-header-ink: var(--header-ink);
   
-  /* Status Telemetry (Grounded Olive Green overrides for connected status checks) */
-  --color-emerald-400: #a5af79; 
-  --color-emerald-500: #717d43;
+  /* Shared Interactive Branding Highlight Tokens */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-accent: var(--brand-secondary);
 }
 
-/* Global Base Application Resets */
+/* ==========================================================================
+   3. FOUR-TIER PERSISTENT COLOR PALETTES 
+   ========================================================================== */
+
+/* --- PALETTE A: CLASSIC CHASE (Default Out-of-the-Box Blue Tech Slate) --- */
+:root, [data-theme="classic"] {
+  --canvas-bg: #0f172a;       /* Deep Slate Blue-Gray Floor */
+  --panel-bg: #1e293b;        /* Crisp Slate Cards & Columns */
+  --border-line: #334155;     /* Structural Slate Borders */
+  
+  --ink-primary: #f8fafc;     /* Bright Snow White Text */
+  --ink-secondary: #94a3b8;   /* Soft Cool Gray Subtitles */
+  --ink-muted: #64748b;       /* Slate Placeholder Grey */
+
+  --header-bg: #1e293b;       /* Matching Dark Menu Rails */
+  --header-toggle: #0f172a;   /* Inner Switch Backdrops */
+  --header-button: #334155;   /* Secondary Button Trays */
+  --header-ink: #cbd5e1;      /* Crisp Light-Gray Header Text */
+
+  --brand-primary: #4f46e5;   /* Corporate Indigo Accents */
+  --brand-hover: #4338ca;     /* Darker Indigo Hover States */
+  --brand-secondary: #818cf8; /* Vibrant Active Highlights */
+}
+
+/* --- PALETTE B: ESPRESSO & CREAM (Your Flipped Light Editorial Mode) --- */
+[data-theme="espresso"] {
+  --canvas-bg: #ede0d4;       /* Warm Cream Coffee-Bean Surface */
+  --panel-bg: #fff9f2;        /* Pure Linen-Paper Active Cards */
+  --border-line: #b08968;     /* Clay Brown Board Section Dividers */
+  
+  --ink-primary: #262015;     /* Deep Espresso Roasted Wood-Ink Text */
+  --ink-secondary: #4b382a;   /* Medium Roast Secondary Details */
+  --ink-muted: #7f5539;       /* Muted Cinnamon Placeholder Text */
+
+  --header-bg: #9c6644;       /* Warm Chestnut Wood Title Bar */
+  --header-toggle: #7f5539;   /* Rich Espresso Inactive Track Backdrops */
+  --header-button: #b08968;   /* Clay Brown Utility Header Trays */
+  --header-ink: #ddb892;      /* Golden Sand Contrast Navigation Labels */
+
+  --brand-primary: #7f5539;   /* Unified Espresso Actions */
+  --brand-hover: #b08968;     /* Soft Clay Hover Transitions */
+  --brand-secondary: #ddb892; /* Sandy Highlights Tracking Dots */
+}
+
+/* --- PALETTE C: WOODLAND OLIVE (Dark Tactical Field Kit) --- */
+[data-theme="woodland"] {
+  --canvas-bg: #283618;       /* Deep Forest Camo Green Floor */
+  --panel-bg: #444e24;        /* Solid Canvas Kombu Olive Columns */
+  --border-line: #606c38;     /* Weathered Flint Dividing Lines */
+  
+  --ink-primary: #fefae0;     /* Antique Bleached Linen Text */
+  --ink-secondary: #e2dfbe;   /* Soft Sandstone Metadata Labels */
+  --ink-muted: #dda15e;       /* Warm Ochre Desert Sand Details */
+
+  --header-bg: #16210f;       /* Abyssal Moss Green-Black Header Bars */
+  --header-toggle: #283618;   /* Core Forest Green Switch Rail Channels */
+  --header-button: #444e24;   /* Kombu Olive Utility Trays */
+  --header-ink: #dda15e;      /* Ochre Sand Contrast Header Font Text */
+
+  --brand-primary: #bc6c25;   /* Burnished Boot-Leather Sienna Brown Actions */
+  --brand-hover: #d17f3b;     /* Warm Auburn Hover Triggers */
+  --brand-secondary: #dda15e; /* Ochre Sand Highlights */
+}
+
+/* --- PALETTE D: ABYSSAL MOSS (Deep Organic Studio Charcoal) --- */
+[data-theme="moss"] {
+  --canvas-bg: #141c17;       /* Shadow Moss Dark Floor */
+  --panel-bg: #1d2621;        /* River Stone Container Shapes */
+  --border-line: #2c3831;     /* Weathered Pine Boundary Cuts */
+  
+  --ink-primary: #f7f9f8;     /* Crisp Linen Typing Text */
+  --ink-secondary: #a2b2a9;   /* Soft Grey-Sage Descriptions */
+  --ink-muted: #62756b;       /* Faded Pine Leaf Placeholders */
+
+  --header-bg: #0f1411;       /* Abyssal Obsidian Green Title Bars */
+  --header-toggle: #141c17;   /* Core Shadow Green Track Channels */
+  --header-button: #1d2621;   /* River Stone Action Trays */
+  --header-ink: #a2b2a9;      /* Soft Sage Contrast Header Wording */
+
+  --brand-primary: #e8a07c;   /* Matte Terracotta Coral Actions */
+  --brand-hover: #d97e55;     /* Warm Terracotta Clay Hover States */
+  --brand-secondary: #f5c4ad; /* Coral Highlight Badges */
+}
+
+/* ==========================================================================
+   4. CORE BASE SYSTEM RESETS
+   ========================================================================== */
 body {
   font-family: var(--font-serif);
-  background-color: var(--color-slate-900);
-  color: var(--color-slate-200); /* Linen parchment serves as default text layer */
+  background-color: var(--color-canvas-bg);
+  color: var(--color-ink-primary);
   -webkit-font-smoothing: antialiased;
+  /* Smoothly crossfades every layout area when the attribute swaps */
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Target the master root scrollbar container dimensions */
+/* Global Custom Scrollbars style update seamlessly to pull your active theme tokens */
 ::-webkit-scrollbar {
-  width: 8px;  /* Vertical scrollbar width bounds */
-  height: 8px; /* Horizontal scrollbar height bounds (The Kanban track) */
+  width: 8px;
+  height: 8px;
 }
-
-/* Style the background scrollbar track valley path */
 ::-webkit-scrollbar-track {
-  background: transparent; /* Makes the tracking tray invisible to show your dark background */
+  background: transparent;
 }
-
-/* Style the interactive scrolling thumb bar handle */
 ::-webkit-scrollbar-thumb {
-  background-color: var(--color-slate-400); /* Uses your exact Color Hunt Muted Sage Green */
-  border-radius: 9999px;                     /* Completely pills the edges for a smooth feel */
-  border: 2px solid transparent;             /* Acts as an organic padding gap buffer */
+  background-color: var(--color-border-line); 
+  border-radius: 9999px;
+  border: 2px solid transparent;
 }
-
-/* Provide visual feedback when a user hovers over the track controls */
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-slate-500); /* Softly deepens the green slightly on active touch */
+  background-color: var(--color-brand-primary);
 }
 
-/* Optional: Smooth out element container clipping profiles */
+/* Global Placeholder Contrast Weights */
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-ink-muted) !important;
+  opacity: 0.85 !important;
+  transition: opacity 0.15s ease;
+}
+input:focus::placeholder,
+textarea:focus::placeholder {
+  opacity: 0.60 !important;
+}
+
 .overflow-x-auto, .overflow-y-auto {
-  scrollbar-gutter: stable; /* Stops text layout jumps when scrollbars materialize */
+  scrollbar-gutter: stable;
 }
