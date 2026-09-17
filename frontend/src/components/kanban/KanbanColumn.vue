@@ -46,7 +46,7 @@ const handleDrop = (event) => {
     @dragleave="handleDragLeave"
     @drop="handleDrop"
     :class="[
-      'flex flex-col w-80 shrink-0 bg-panel-bg border-r border-l h-[calc(100vh-112px)] min-h-[calc(100vh-112px)] p-4 shadow-sm transition-all duration-150',
+      'flex flex-col w-[calc(100vw/6.5)] shrink-0 bg-panel-bg border-r border-l h-[calc(100vh-126px)] min-h-[calc(100vh-126px)] p-4 shadow-sm transition-all duration-150',
       isDragHovered ? 'border-brand-primary/50 bg-panel-bg/80 scale-[1.01]' : 'border-border-line/10'
     ]"
   >
